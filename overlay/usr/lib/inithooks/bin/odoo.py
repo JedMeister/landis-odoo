@@ -1,4 +1,3 @@
-ORIG to L14
 
 /usr/lib/inithooks/firstboot.d/50admin-db-pass
 
