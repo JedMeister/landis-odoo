@@ -1,4 +1,3 @@
-
 /usr/lib/inithooks/firstboot.d/50admin-db-pass
 
 #!/bin/bash -e
