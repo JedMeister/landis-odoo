@@ -1,0 +1,27 @@
+#!/bin/bash -ex
+
+dl() {
+    [ "$FAB_HTTP_PROXY" ] && PROXY="--proxy $FAB_HTTP_PROXY"
+    cd $2; curl -L -f -O $PROXY $1; cd -
+}
+
+SRC=/usr/local/src
+
+cd $SRC
+
+GDATA_VER=2.0.17
+GDATA_URL=http://gdata-python-client.googlecode.com/files
+
+dl $GDATA_URL/gdata-$GDATA_VER.tar.gz
+
+WKH_VER=0.12.2.1
+WKH_URL=http://downloads.sourceforge.net/wkhtmltopdf
+
+dl $WKH_URL/wkhtmltox-$WKH_VER_linux-jessie-amd64.deb
+
+[ "$FAB_HTTP_PROXY" ] && http_proxy=$FAB_HTTP_PROXY 
+BRANCH=8.0
+URL=http://github.com/odoo/odoo.git
+
+git clone $URL --branch $BRANCH --depth 1 $SRC/odoo
+
