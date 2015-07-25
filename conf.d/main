@@ -6,8 +6,8 @@ DB_NAME=odoo
 DB_USER=odoo
 DB_PASS=$(mcookie)
 
-OPENERP_PASS=turnkey
-
+ODOO_USER=openerp
+ODOO_PASS=turnkey
 ODOO_DIR=/opt/odoo
 
 # install wkhtmltox
@@ -34,8 +34,8 @@ alter user $DB_USER with encrypted password '$DB_PASS';
 EOF
 
 # add system user openerp
-echo | adduser --disabled-password openerp
-usermod -p $(echo $OPENERP_PASS | openssl passwd -1 -stdin) openerp
+echo | adduser --disabled-password $ODOO_USER
+usermod -p $(echo $ODOO_PASS | openssl passwd -1 -stdin) $ODOO_USER
 
 update-rc.d openerp-server defaults
 touch /var/log/openerp-server.log
@@ -49,7 +49,8 @@ proxy_mode = True
 xmlrpc_interface = 127.0.0.1
 EOF
 
-service openerp-server restart
+service openerp-server start
+service openerp-server stop
 
 #a2enmod ssl proxy_http headers rewrite
 a2dissite 000-default
