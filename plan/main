@@ -1,14 +1,13 @@
 #include <turnkey/base>
 #include <turnkey/lapp>
-#include <turnkey/samba>
 
 postgresql-contrib       # additional facilities for PostgreSQL
 
 libapache2-mod-python    # Apache 2 module that embeds Python within the server
 python-pygresql          # PostgreSQL module for Python
 
-libapache2-mod-perl2     # Integration of perl with the Apache2 web server
-libdbd-pg-perl           # Perl DBI driver for the PostgreSQL database server
+//libapache2-mod-perl2     # Integration of perl with the Apache2 web server
+//libdbd-pg-perl           # Perl DBI driver for the PostgreSQL database server
 
 python-dateutil     # 1   dateutil : provides powerful extensions to the standard datetime module, available in Python 2.3+.
 python-feedparser   # 2   universal Feed Parser for Python
