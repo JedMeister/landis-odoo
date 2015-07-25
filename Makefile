@@ -1,5 +1,5 @@
-COMMON_OVERLAYS = tkl-webcp samba-fileserver samba-sid-inithook
-COMMON_CONF = tkl-webcp fileserver-storage samba-rootpass samba-webmin
+COMMON_OVERLAYS = tkl-webcp 
+COMMON_CONF = tkl-webcp 
 
 CREDIT_ANCHORTEXT = Turnkey Odoo Appliance
 
