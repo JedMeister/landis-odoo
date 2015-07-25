@@ -7,17 +7,15 @@ dl() {
 
 SRC=/usr/local/src
 
-cd $SRC
-
 GDATA_VER=2.0.17
 GDATA_URL=http://gdata-python-client.googlecode.com/files
 
-dl $GDATA_URL/gdata-$GDATA_VER.tar.gz
+dl $GDATA_URL/gdata-$GDATA_VER.tar.gz $SRC
 
 WKH_VER=0.12.2.1
 WKH_URL=http://downloads.sourceforge.net/wkhtmltopdf
 
-dl $WKH_URL/wkhtmltox-$WKH_VER_linux-jessie-amd64.deb
+dl $WKH_URL/wkhtmltox-${WKH_VER}_linux-jessie-amd64.deb $SRC
 
 [ "$FAB_HTTP_PROXY" ] && http_proxy=$FAB_HTTP_PROXY 
 BRANCH=8.0

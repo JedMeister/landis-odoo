@@ -1,5 +1,56 @@
 #!/bin/sh -ex
 
-#ensure datafiles (eg. innodb) are created
-/etc/init.d/mysql start
-/etc/init.d/mysql stop
+SRC=/usr/local/src
+
+DB_NAME=odoo
+DB_USER=odoo
+DB_PASS=$(mcookie)
+
+OPENERP_PASS=turnkey
+
+ODOO_DIR=/opt/odoo
+
+# install wkhtmltox
+dpkg -i $SRC/wkhtmltox-*.deb
+
+# install gdata-python-client
+cd $SRC
+tar -zxvf gdata-*.tar.gz
+cd gdata-*
+python setup.py install
+
+# move Odoo
+mkdir -p $(dirname $ODOO_DIR)
+mv $SRC/odoo $ODOO_DIR
+
+# start PostgreSQL
+/etc/init.d/postgresql start
+
+# create database
+su postgres -c "createuser --no-superuser --createdb --no-createrole $DB_USER"
+su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_NAME"
+su postgres -c "psql postgres" << EOF
+alter user $DB_USER with encrypted password '$DB_PASS';
+EOF
+
+# add system user openerp
+echo | adduser --disabled-password openerp
+usermod -p $(echo $OPENERP_PASS | openssl passwd -1 -stdin) openerp
+
+update-rc.d openerp-server defaults
+touch /var/log/openerp-server.log
+chown openerp /var/log/openerp-server.log
+touch /var/run/openerp-server.pid
+chown openerp /var/run/openerp-server.pid
+chown -R openerp:openerp $ODOO_DIR
+
+cat >> /etc/odoo/openerp-server.conf <<EOF
+proxy_mode = True
+xmlrpc_interface = 127.0.0.1
+EOF
+
+service openerp-server restart
+
+#a2enmod ssl proxy_http headers rewrite
+a2dissite 000-default
+a2ensite odoo
