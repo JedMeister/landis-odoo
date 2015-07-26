@@ -46,12 +46,19 @@ chown $ODOO_USER $LOG
 chown $ODOO_USER $CONF
 chown -R $ODOO_USER:$ODOO_USER $ODOO_DIR
 
-service openerp-server start
-URL=http://127.0.0.1:8069/web/database/create
-curl -L http://127.0.0.1:8069
+URL=http://127.0.0.1:8069
+until $(curl --output /dev/null --silent --head --fail $URL); do
+    printf '.'
+    service openerp-server start
+    sleep 5
+done
+
+URL=$URL/web/database/create
 
 DATA='{"jsonrpc":"2.0","method":"call","params":{"fields":[{"name":"super_admin_pwd","value":"admin"},{"name":"db_name","value":"turnkey"},{"name":"db_lang","value":"en_US"},{"name":"create_admin_pwd","value":"turnkey"},{"name":"create_confirm_pwd","value":"turnkey"}]},"id":900757539}'
+
 curl -X POST -H "Content-Type: application/json" -d $DATA $URL
+
 service openerp-server stop
 
 a2enmod proxy_http headers rewrite
