@@ -13,57 +13,71 @@
 ### END INIT INFO
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/opt/openerp/odoo/openerp-server
 NAME=openerp-server
 DESC=openerp-server
-CONFIG=/opt/openerp/odoo/openerp-server.conf
-LOGFILE=/var/log/openerp-server.log
-USER=openerp
+DAEMON=/opt/odoo/openerp-server
+CONFIG=/etc/odoo/${NAME}.conf
+LOGFILE=/var/log/${NAME}.log
+PIDFILE=/var/run/${NAME}.pid
+USER=odoo
 
 test -x ${DAEMON} || exit 0
 
 set -e
 
+start () {
+  if [ -f "$PIDFILE" ] && ps -p $(cat $PIDFILE) >/dev/null; then
+    echo "Service $NAME already running" >&2
+    return 1
+  fi
+  echo 'Starting service...' >&2
+  start-stop-daemon -S -m -b -p $PIDFILE -c $USER --startas $DAEMON -- --config=$CONFIG --logfile=$LOGFILE
+  echo "Service $NAME started" >&2
+}
+
+stop () {
+  if [ ! -f "$PIDFILE" ] || ! ps -p $(cat $PIDFILE) >/dev/null; then
+    echo "Service $NAME not running" >&2
+    return 1
+  fi
+  echo 'Stopping service...' >&2
+  start-stop-daemon -K -p $PIDFILE
+  echo "Service $NAME stopped" >&2
+}
+
+status () {
+  if [ -f $PIDFILE ]; then
+    if ps -p $(cat $PIDFILE) -u $USER > dev/null; then
+      echo "Service $NAME running" >&2
+      return 0
+    fi
+    echo "Service $NAME not running (or orphaned)" >&2
+    return 1
+  fi
+}
+
 case "${1}" in
 	start)
-		echo -n "Starting ${DESC}: "
-
-		start-stop-daemon --start --quiet --pidfile /var/run/${NAME}.pid \
-			--chuid ${USER} --background --make-pidfile \
-			--exec ${DAEMON} -- --config=${CONFIG} \
-			    --logfile=${LOGFILE}
-
-		echo "${NAME}."
+		start
 		;;
 
 	stop)
-		echo -n "Stopping ${DESC}: "
-
-		start-stop-daemon --stop --quiet --pidfile /var/run/${NAME}.pid \
-			--oknodo
-
-		echo "${NAME}."
+		stop
 		;;
 
 	restart|force-reload)
-		echo -n "Restarting ${DESC}: "
-
-		start-stop-daemon --stop --quiet --pidfile /var/run/${NAME}.pid \
-			--oknodo
-
-		sleep 1
-
-		start-stop-daemon --start --quiet --pidfile /var/run/${NAME}.pid \
-			--chuid ${USER} --background --make-pidfile \
-			--exec ${DAEMON} -- --config=${CONFIG} \
-			    --logfile=${LOGFILE}
-
-		echo "${NAME}."
+		stop
+        sleep 1
+        start
 		;;
+    
+    status)
+        status
+        ;;
 
 	*)
 		N=/etc/init.d/${NAME}
-		echo "Usage: ${NAME} {start|stop|restart|force-reload}" >&2
+		echo "Usage: ${NAME} {start|stop|restart|force-reload|status}" >&2
 		exit 1
 		;;
 esac
