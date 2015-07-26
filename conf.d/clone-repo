@@ -1,0 +1,12 @@
+#!/bin/bash -ex
+
+[ "$FAB_HTTP_PROXY" ] && export http_proxy=$FAB_HTTP_PROXY
+
+ODOO_DIR=/opt/odoo
+
+BRANCH=8.0
+URL=http://github.com/odoo/odoo.git
+
+git clone $URL --branch $BRANCH --depth 1 $ODOO_DIR
+
+unset http_proxy

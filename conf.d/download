@@ -16,11 +16,3 @@ WKH_VER=0.12/0.12.2.1
 WKH_URL=http://download.gna.org/wkhtmltopdf/$WKH_VER
 
 dl $WKH_URL/wkhtmltox-$(basename $WKH_VER)_linux-jessie-amd64.deb $SRC
-
-[ "$FAB_HTTP_PROXY" ] && http_proxy=$FAB_HTTP_PROXY 
-BRANCH=8.0
-URL=http://github.com/odoo/odoo.git
-
-git clone $URL --branch $BRANCH --depth 1 $SRC/odoo
-
-unset http_proxy

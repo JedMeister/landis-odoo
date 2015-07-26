@@ -6,9 +6,12 @@ DB_NAME=odoo
 DB_USER=odoo
 DB_PASS=$(mcookie)
 
-ODOO_USER=openerp
+ODOO_USER=odoo
 ODOO_PASS=turnkey
 ODOO_DIR=/opt/odoo
+
+CONF=/etc/odoo/openerp-server.conf
+LOG=/var/log/openerp-server.log
 
 # install wkhtmltox
 dpkg -i $SRC/wkhtmltox-*.deb
@@ -19,39 +22,40 @@ tar -zxvf gdata-*.tar.gz
 cd gdata-*
 python setup.py install
 
-# move Odoo
-mkdir -p $(dirname $ODOO_DIR)
-mv $SRC/odoo $ODOO_DIR
-
 # start PostgreSQL
 /etc/init.d/postgresql start
 
 # create database
-su postgres -c "createuser --no-superuser --createdb --no-createrole $DB_USER"
-su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_NAME"
-su postgres -c "psql postgres" << EOF
-alter user $DB_USER with encrypted password '$DB_PASS';
-EOF
+#su postgres -c "createuser --no-superuser --createdb --no-createrole $DB_USER"
+#su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_NAME"
+#su postgres -c "psql postgres" << EOF
+#alter user $DB_USER with encrypted password '$DB_PASS';
+#EOF
+#sed -i "s|.*db_password = .*|db_password = $DB_PASS|" $CONF
+su - postgres -c "createuser -s odoo"
 
-# add system user openerp
-echo | adduser --disabled-password $ODOO_USER
-usermod -p $(echo $ODOO_PASS | openssl passwd -1 -stdin) $ODOO_USER
+# add system user
+adduser --system --quiet --shell=/bin/bash --home=$ODOO_DIR --gecos 'ODOO' --group $ODOO_USER
+#echo | adduser --disabled-password $ODOO_USER
+#usermod -p $(echo $ODOO_PASS | openssl passwd -1 -stdin) $ODOO_USER
 
 update-rc.d openerp-server defaults
-touch /var/log/openerp-server.log
-chown openerp /var/log/openerp-server.log
-touch /var/run/openerp-server.pid
-chown openerp /var/run/openerp-server.pid
-chown -R openerp:openerp $ODOO_DIR
-
-cat >> /etc/odoo/openerp-server.conf <<EOF
-proxy_mode = True
-xmlrpc_interface = 127.0.0.1
-EOF
+ln -s /etc/init.d/openerp-server /etc/init.d/odoo
+touch $LOG
+chown $ODOO_USER $LOG
+chown $ODOO_USER $CONF
+chown -R $ODOO_USER:$ODOO_USER $ODOO_DIR
 
 service openerp-server start
+URL=http://127.0.0.1:8069/web/database/create
+curl -L http://127.0.0.1:8069
+
+DATA='{"jsonrpc":"2.0","method":"call","params":{"fields":[{"name":"super_admin_pwd","value":"admin"},{"name":"db_name","value":"turnkey"},{"name":"db_lang","value":"en_US"},{"name":"create_admin_pwd","value":"turnkey"},{"name":"create_confirm_pwd","value":"turnkey"}]},"id":900757539}'
+curl -X POST -H "Content-Type: application/json" -d $DATA $URL
 service openerp-server stop
 
-#a2enmod ssl proxy_http headers rewrite
+a2enmod proxy_http headers rewrite
 a2dissite 000-default
 a2ensite odoo
+
+service postgresql stop
